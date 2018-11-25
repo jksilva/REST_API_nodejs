@@ -48,7 +48,52 @@ lib.read = function(dir,file,callback){
   });
 };
 
+// Update data inside a file
+lib.update = function (dir,file,data,callback) {
+  // Open the file for writing
+  fs.open(lib.baseDir+dir+'/'+file+'.json','r+',function(err,fileDescriptor){
+    if(!err && fileDescriptor){
+      // convert data to string
+      var stringData = JSON.stringify(data);
 
+      // Truncate the file
+      fs.truncate(fileDescriptor,function(err){
+        if(!err){
+          // Write to the file and close it
+          fs.writeFile(fileDescriptor,stringData,function(err){
+            if(!err){
+              fs.close(fileDescriptor,function(err){
+                if(!err){
+                  callback(false);
+                }else {
+                  callback('Error closing to existing file');
+                }
+              });
+            }else {
+              callback('Error writing to existing file');
+            }
+          });
+        }else {
+          callback('Error truncating file');
+        }
+      });
+    }else {
+      callback('Could not open the file for Updating, it may not exist yet');
+    }
+  });
+}
+
+// Delete a file
+lib.delete = function(dir,file,callback){
+  // unlink the file
+  fs.unlink(lib.baseDir+dir+'/'+file+'.json',function(err){
+    if(!err){
+      callback(false);
+    }else {
+      callback('error deleting the file');
+    }
+  });
+};
 
 // Export the module
 module.exports = lib;
