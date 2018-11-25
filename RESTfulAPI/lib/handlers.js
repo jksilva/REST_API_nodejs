@@ -71,12 +71,32 @@ handlers._users.post = function(data,callback){
       }
     });
   }else {
-    callback(400,{'error':'missing required fields',password});
+    callback(400,{'error':'missing required fields'});
   }
 };
 // Users - get
+// Required data: phone
+// Optional data: none
+// @TODO only let an authenticated users acessess their  object. dont let then access anyone else.
 handlers._users.get = function(data,callback){
+// check that phone number is valid
+var phone = typeof(data.queryStringObject.phone) =='string' && data.queryStringObject.phone.trim().length == 10 ? data.queryStringObject.phone.trim() : false;
 
+if(phone){
+  // lookup the user
+  _data.read('users',phone,function(err,data){
+    if(!err && data){
+      //remove the hashed password from the user object before returning it to the requester
+      delete data.hashedPassword;
+      callback(200,data);
+       
+    }else {
+      callback(404);
+    }
+  });
+} else {
+  callback(400,{'Error':'Missing required field'});
+}
 };
 // Users - put
 handlers._users.put = function(data,callback){
