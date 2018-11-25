@@ -89,7 +89,7 @@ if(phone){
       //remove the hashed password from the user object before returning it to the requester
       delete data.hashedPassword;
       callback(200,data);
-       
+
     }else {
       callback(404);
     }
@@ -99,7 +99,58 @@ if(phone){
 }
 };
 // Users - put
+// Required data : phone
+// Optional data : firstName, lastName, password (at least one must be specified)
+// @TODO only let an autheticated user update their own object. Dont let them update anyone else's
 handlers._users.put = function(data,callback){
+  // Check for the required fields
+  console.log('teste ',data.payload.lastName);
+  var phone = typeof(data.payload.phone) == 'string' && data.payload.phone.trim().length == 10 ? data.payload.phone.trim() : false;
+
+  // Check for the optional fields
+  var firstName = typeof(data.payload.firstName) == 'string' && data.payload.firstName.trim().length > 0 ? data.payload.firstName.trim() : false;
+  var lastName = typeof(data.payload.lastName) == 'string' && data.payload.lastName.trim().length > 0 ? data.payload.lastName.trim() : false;
+  var password = typeof(data.payload.password) == 'string' && data.payload.password.trim().length > 0 ? data.payload.password.trim() : false;
+
+  // check for the optional fields
+
+  if (phone) {
+    // error if nothing is sent to Update
+    if (firstName || lastName || password) {
+      // lookup the users
+      _data.read('users',phone,function(err,userData){
+        if(!err && userData){
+          //update the fields necessary
+          if (firstName) {
+            userData.firstName = firstName;
+          }
+          if (lastName) {
+            userData.lastName = lastName;
+          }
+          if (password) {
+            userData.hashedPassword = helpers.hash(password);
+          }
+          // store the new updates
+          _data.update('users',phone,userData,function (err) {
+            if (!err) {
+              callback(200);
+            }else {
+              console.log(err);
+              callback(500,{'error':'could not update the user'});
+              console.log('nao encontrou ',phone);
+            }
+
+          });
+        }else {
+          callback(400,{'error': 'the specified user does not exist'});
+        }
+      });
+    }else {
+      callback(400,{'error': 'missing fields to update'});
+    }
+  }else {
+    callback(400,{'error':'missing required field'});
+  }
 
 };
 // Users - delete
