@@ -154,9 +154,35 @@ handlers._users.put = function(data,callback){
 
 };
 // Users - delete
+// required field : phone
+// @TODO only let an authenticated user delete their object, dont let them delete anyone else
+//@TODO cleanup (delete) any other data files associated with this user
 handlers._users.delete = function(data,callback){
+  //check that phone number is valid
+  var phone = typeof(data.queryStringObject.phone) =='string' && data.queryStringObject.phone.trim().length == 10 ? data.queryStringObject.phone.trim() : false;
 
-};
+  if(phone){
+    // lookup the user
+    _data.read('users',phone,function(err,data){
+      if(!err && data){
+        _data.delete('users',phone,function(err){
+          if(!err){
+            callback(200);
+          }else {
+            callback(500,{'error':'could not delete the specified user'})
+          }
+        });
+        callback(200,data);
+
+      }else {
+        callback(400,{'error': 'could not find the specified users'});
+      }
+    });
+  } else {
+    callback(400,{'Error':'Missing required field'});
+  }
+  };
+
 
 
 // Ping handler
