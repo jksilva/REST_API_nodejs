@@ -93,11 +93,12 @@ lib.update = function (dir,file,data,callback) {
 // Delete a file
 lib.delete = function(dir,file,callback){
   // unlink the file
-  fs.unlink(lib.baseDir+dir+'/'+file+'.json',function(err){
+  fs.unlink(lib.baseDir+dir+'\\'+file+'.json',function(err){
     if(!err){
       callback(false);
     }else {
       callback('error deleting the file');
+      console.log("veja isso ",lib.baseDir+dir+'\\'+file+'.json');
     }
   });
 };
